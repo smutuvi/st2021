@@ -1,4 +1,4 @@
-task=agnews
+task=semeval
 gpu=0
 method=selftrain
 max_seq_len=128
