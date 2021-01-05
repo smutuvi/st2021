@@ -47,11 +47,11 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     parser.add_argument("--method", default='clean', type=str, help="which method to use")
-    parser.add_argument("--task_type", default="re", type=str, help="the specific task in IE: [ tc | re | ner ]")
+    parser.add_argument("--task_type", default="tc", type=str, help="the specific task in IE: [ tc | re | ner ]")
     parser.add_argument("--gpu", default='0,1,2,3', type=str, help="which gpu to use")
     parser.add_argument("--task", default="semeval", type=str, help="The name of the task to train")
     parser.add_argument("--rule", default=1, type=int, help="Use rule or not")
-    parser.add_argument("--data_dir", default="./data", type=str,
+    parser.add_argument("--data_dir", default="./data/semeval", type=str,
                         help="The input data dir. Should contain the .tsv files (or other data files) for the task.")
     parser.add_argument("--model_dir", default="./model", type=str, help="Path to model")
     parser.add_argument("--eval_dir", default="./eval", type=str, help="Evaluation script, result directory")
