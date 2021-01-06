@@ -8,13 +8,13 @@ python3 main.py \
 	--do_train \
 	--do_eval \
 	--task=${task} \
-	--train_file=train_data.json \
-	--dev_file=dev_data.json \
-	--test_file=test_data.json \
-	--unlabel_file=unlabeled_data.json \
+	--train_file=train.tsv \
+	--dev_file=dev.tsv \
+	--test_file=test.tsv \
+	--unlabel_file=unlabeled.tsv \
 	--task_type=tc \
-	--data_dir="data/${task}" \
-	--rule=1 \
+	--data_dir="data" \
+	--rule=0 \
 	--logging_steps=100 \
 	--self_train_logging_steps=100 \
 	--gpu="${gpu}" \
