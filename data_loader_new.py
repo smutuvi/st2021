@@ -62,7 +62,6 @@ class WiCInputExample(InputExample):
         self.true = true
 
 
-
 class MaskedLmInstance(object):
     """
     A single set of features of masked data.
@@ -103,22 +102,14 @@ class InputFeatures(object):
         token_type_ids: Segment token indices to indicate first and second portions of the inputs.
     """
 
-    def __init__(self, input_ids, attention_mask, token_type_ids, label_id, true = -1,
-                 e1_mask = None, e2_mask = None, keys=None, input_mask=None, segment_ids=None, valid_ids=None, label_mask=None):
+    def __init__(self, input_ids, input_mask, segment_ids, label_id, valid_ids=None, label_mask=None):
         self.input_ids = input_ids
-        self.attention_mask = attention_mask
-        self.token_type_ids = token_type_ids
-        self.label_id = label_id
-        self.true = true
-        self.e1_mask = e1_mask
-        self.e2_mask = e2_mask
-        self.keys=keys
-
-        # added
         self.input_mask = input_mask
         self.segment_ids = segment_ids
+        self.label_id = label_id
         self.valid_ids = valid_ids
         self.label_mask = label_mask
+
 
     def __repr__(self):
         return str(self.to_json_string())
@@ -182,6 +173,11 @@ class NerProcessor(DataProcessor):
 
     def __init__(self, args):
         self.args = args
+        # self.num_labels = len(self.get_labels()) + 1
+        self.num_label = 11
+        self.relation_labels = [x for x in range(self.num_label)]
+        self.label2id = {x:x for x in range(self.num_label)}
+        self.id2label = {x:x for x in range(self.num_label)}
 
     # def get_train_examples(self, data_dir):
     #     """See base class."""
@@ -920,7 +916,7 @@ def convert_examples_to_features(examples, label_list, max_seq_len, tokenizer):
     features = []
     for (ex_index,example) in enumerate(examples):
         textlist = example.text_a.split(' ')
-        labellist = example.label
+        labellist = example.label        
         tokens = []
         labels = []
         valid = []
@@ -929,6 +925,7 @@ def convert_examples_to_features(examples, label_list, max_seq_len, tokenizer):
             token = tokenizer.tokenize(word)
             tokens.extend(token)
             label_1 = labellist[i]
+            print(label_1)
             for m in range(len(token)):
                 if m == 0:
                     labels.append(label_1)
@@ -1054,7 +1051,8 @@ def load_and_cache_examples(args, tokenizer, mode):
     # all_label_ids = torch.tensor([f.label_id for f in features], dtype=torch.long)
     # all_true_ids = torch.tensor([f.true for f in features], dtype=torch.long)
     # all_ids = torch.tensor([ _ for _,f in enumerate(features)], dtype=torch.long)
-    # size = len(features)
+    size = len(features)
+  
 
     #     ##added 
     # # Convert to Tensors and build dataset
@@ -1063,6 +1061,18 @@ def load_and_cache_examples(args, tokenizer, mode):
     # all_valid_ids = torch.tensor([f.valid_ids for f in features], dtype=torch.long)
     # all_lmask_ids = torch.tensor([f.label_mask for f in features], dtype=torch.long)
 
+ # Convert to Tensors and build dataset
+    all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
+    all_input_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
+    all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
+    all_label_ids = torch.tensor([f.label_id for f in features], dtype=torch.long)
+    all_valid_ids = torch.tensor([f.valid_ids for f in features], dtype=torch.long)
+    all_lmask_ids = torch.tensor([f.label_mask for f in features], dtype=torch.long)
+
+    dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids,all_valid_ids,all_lmask_ids)
+
+    #dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
+    return dataset,processor.relation_labels, processor.num_label, processor.id2label, processor.label2id, size
 
     # if args.task_type == 're':
     #     all_e1_mask = torch.tensor([f.e1_mask for f in features], dtype=torch.long)  # add e1 mask
