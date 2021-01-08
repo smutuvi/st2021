@@ -1054,12 +1054,12 @@ def load_and_cache_examples(args, tokenizer, mode):
     all_ids = torch.tensor([ _ for _,f in enumerate(features)], dtype=torch.long)
     size = len(features)
 
-    ##added 
-    # Convert to Tensors and build dataset
-    all_input_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
-    all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
-    all_valid_ids = torch.tensor([f.valid_ids for f in features], dtype=torch.long)
-    all_lmask_ids = torch.tensor([f.label_mask for f in features], dtype=torch.long)
+    # ##added 
+    # # Convert to Tensors and build dataset
+    # all_input_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
+    # all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
+    # all_valid_ids = torch.tensor([f.valid_ids for f in features], dtype=torch.long)
+    # all_lmask_ids = torch.tensor([f.label_mask for f in features], dtype=torch.long)
 
 
 
