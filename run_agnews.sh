@@ -1,4 +1,4 @@
-task=semeval
+task=epidemic
 gpu=0
 method=selftrain
 max_seq_len=128
@@ -8,10 +8,10 @@ python3 main.py \
 	--do_train \
 	--do_eval \
 	--task=${task} \
-	--train_file=train.tsv \
-	--dev_file=dev.tsv \
-	--test_file=test.tsv \
-	--unlabel_file=unlabeled.tsv \
+	--train_file=train.txt \
+	--dev_file=dev.txt \
+	--test_file=test.txt \
+	--unlabel_file=unlabeled.txt \
 	--task_type=tc \
 	--data_dir="data" \
 	--rule=0 \
