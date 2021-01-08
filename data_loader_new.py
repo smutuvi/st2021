@@ -91,7 +91,7 @@ class MaskedLmInstance(object):
         """Serializes this instance to a JSON string."""
         return json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n"
 
-class InputFeatures(object):
+class InputFeatures_sequence_classification(object):
     """
     A single set of features of data.
     Args:
@@ -584,7 +584,7 @@ def convert_examples_to_features_re(examples, max_seq_len, tokenizer,
                 logger.info("e2_mask: %s" % " ".join([str(x) for x in e2_mask]))
             #assert 0
         features.append(
-            InputFeatures(
+            InputFeatures_sequence_classification(
                             input_ids=input_ids,
                             e1_mask=e1_mask,
                             e2_mask=e2_mask,
@@ -673,7 +673,7 @@ def convert_examples_to_features_wic(examples, max_seq_len, tokenizer,
             #assert 0
 
         features.append(
-            InputFeatures(
+            InputFeatures_sequence_classification(
                             input_ids=input_ids,
                             keys=keys,
                             attention_mask=attention_mask,
@@ -790,7 +790,7 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
             #assert 0
 
         features.append(
-            InputFeatures(
+            InputFeatures_sequence_classification(
                             input_ids=input_ids,
                             attention_mask=attention_mask,
                             token_type_ids=token_type_ids,
