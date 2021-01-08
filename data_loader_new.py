@@ -93,7 +93,6 @@ class MaskedLmInstance(object):
         """Serializes this instance to a JSON string."""
         return json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n"
 
-
 class InputFeatures(object):
     """
     A single set of features of data.
@@ -121,7 +120,6 @@ class InputFeatures(object):
         self.segment_ids = segment_ids
         self.valid_ids = valid_ids
         self.label_mask = label_mask
-
     def __repr__(self):
         return str(self.to_json_string())
 
@@ -236,7 +234,6 @@ class NerProcessor(DataProcessor):
         logger.info("LOOKING AT {}".format(os.path.join(self.args.data_dir, file_to_read)))
         return self._create_examples(self._read_tsv(os.path.join(self.args.data_dir, file_to_read)), mode)
 
-
 class SemEvalProcessor(object):
     """Processor for the Semeval data set """
 
@@ -244,9 +241,9 @@ class SemEvalProcessor(object):
         self.args = args
         self.relation_labels = get_label(args)
         self.num_label = 3
-        self.label2id = None
-        self.id2label = None
-
+        # self.relation_labels = [x for x in range(self.num_label)]
+        self.label2id = {x:x for x in range(self.num_label)}
+        self.id2label = {x:x for x in range(self.num_label)}
 
     @classmethod
     def _read_tsv(cls, input_file, quotechar=None):
@@ -263,10 +260,12 @@ class SemEvalProcessor(object):
         examples = []
         for (i, line) in enumerate(lines):
             guid = "%s-%s" % (set_type, i)
-            # print(line[1])
+            # # print(line[1])
+            # text_a = line[1]
+            # # print(text_a)
+            # label = self.relation_labels.index(line[0])
             text_a = line[1]
-            # print(text_a)
-            label = self.relation_labels.index(line[0])
+            label = line[0]
             if i % 1000 == 0:
                 logger.info(line)
             examples.append(InputExample(guid=guid, text_a=text_a, label=label))
@@ -284,7 +283,12 @@ class SemEvalProcessor(object):
             file_to_read = self.args.dev_file
         elif mode == 'test':
             file_to_read = self.args.test_file
+        elif mode == 'unlabeled':
+            file_to_read = self.args.unlabel_file
 
+        print(self.args.data_dir)
+        print(file_to_read)
+        
         logger.info("LOOKING AT {}".format(os.path.join(self.args.data_dir, file_to_read)))
         return self._create_examples(self._read_tsv(os.path.join(self.args.data_dir, file_to_read)), mode)
 
@@ -1034,7 +1038,7 @@ def load_and_cache_examples(args, tokenizer, mode):
         elif args.task_type == 're':
             features = convert_examples_to_features_re(examples, args.max_seq_len, tokenizer, add_sep_token=args.add_sep_token, task = args.task_type)            
         elif args.task_type == 'ner':
-                    features = convert_examples_to_features_ner(examples, args.max_seq_len, tokenizer, add_sep_token=args.add_sep_token, task = args.task_type)            
+                    features = convert_examples_to_features_ner(examples, args.max_seq_len, tokenizer, add_sep_token=args.add_sep_token, task = args.task_type)                    
         else:
             features = convert_examples_to_features(examples, args.max_seq_len, tokenizer, add_sep_token=args.add_sep_token, task = args.task_type)
         logger.info("Saving features into cached file %s", cached_features_file)
@@ -1056,6 +1060,8 @@ def load_and_cache_examples(args, tokenizer, mode):
     all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
     all_valid_ids = torch.tensor([f.valid_ids for f in features], dtype=torch.long)
     all_lmask_ids = torch.tensor([f.label_mask for f in features], dtype=torch.long)
+
+
 
     if args.task_type == 're':
         all_e1_mask = torch.tensor([f.e1_mask for f in features], dtype=torch.long)  # add e1 mask
