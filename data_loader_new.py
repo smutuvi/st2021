@@ -204,9 +204,10 @@ class NerProcessor(DataProcessor):
             text_a = ' '.join(sentence)
             text_b = None
             if set_type in ['unlabeled']:
-                for x in range(len(sentence)):
-                    label[x] = -1
-                # label = -1
+                label = label
+                # for x in range(len(sentence)):
+                #     label[x] = -1
+                # # label = -1
             else:
                 label = label
             examples.append(InputExample(guid=guid,text_a=text_a,text_b=text_b,label=label))
@@ -951,6 +952,7 @@ def convert_examples_to_features(examples, label_list, max_seq_len, tokenizer):
             segment_ids.append(0)
             if len(labels) > i:
                 label_ids.append(label_map[labels[i]])
+                # label_ids.append(int(example.label))
         ntokens.append("[SEP]")
         segment_ids.append(0)
         valid.append(1)
@@ -1120,36 +1122,52 @@ def load_and_cache_unlabeled_examples(args, tokenizer, mode, train_size = 100):
 
         assert mode == "unlabeled"
         examples = processor.get_examples("unlabeled")
-        if args.task_type == 'wic':
-            features = convert_examples_to_features_wic(examples, args.max_seq_len, tokenizer, add_sep_token=args.add_sep_token, task = args.task_type)
-        elif args.task_type == 're':
-            features = convert_examples_to_features_re(examples, args.max_seq_len, tokenizer, add_sep_token=args.add_sep_token, task = args.task_type)
-        else:
-            features = convert_examples_to_features(examples, args.max_seq_len, tokenizer, add_sep_token=args.add_sep_token, task = args.task_type)
+        # if args.task_type == 'wic':
+        #     features = convert_examples_to_features_wic(examples, args.max_seq_len, tokenizer, add_sep_token=args.add_sep_token, task = args.task_type)
+        # elif args.task_type == 're':
+        #     features = convert_examples_to_features_re(examples, args.max_seq_len, tokenizer, add_sep_token=args.add_sep_token, task = args.task_type)
+        # else:
+        #     features = convert_examples_to_features(examples, args.max_seq_len, tokenizer, add_sep_token=args.add_sep_token, task = args.task_type)
+        label_list = processor.get_labels()
+        features = convert_examples_to_features(examples, label_list, args.max_seq_len, tokenizer)
         logger.info("Saving features into cached file %s", cached_features_file)
         torch.save(features, cached_features_file)
 
-    # Convert to Tensors and build dataset
+ # Convert to Tensors and build dataset
     all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
-    all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
-    all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
-
+    all_input_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
+    all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
     all_label_ids = torch.tensor([f.label_id for f in features], dtype=torch.long)
-    all_true_ids = torch.tensor([f.true for f in features], dtype=torch.long)
-    all_ids = torch.tensor([_+train_size for _ ,f in enumerate(features)], dtype=torch.long)
+    all_valid_ids = torch.tensor([f.valid_ids for f in features], dtype=torch.long)
+    all_lmask_ids = torch.tensor([f.label_mask for f in features], dtype=torch.long)
+    size = len(features)
+
+    dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids,all_valid_ids,all_lmask_ids)
+
+    #dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
+    return dataset, size
+
+    # # Convert to Tensors and build dataset
+    # all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
+    # all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
+    # all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
+
+    # all_label_ids = torch.tensor([f.label_id for f in features], dtype=torch.long)
+    # all_true_ids = torch.tensor([f.true for f in features], dtype=torch.long)
+    # all_ids = torch.tensor([_+train_size for _ ,f in enumerate(features)], dtype=torch.long)
 
 
-    if args.task_type == 're':
-        all_e1_mask = torch.tensor([f.e1_mask for f in features], dtype=torch.long)  # add e1 mask
-        all_e2_mask = torch.tensor([f.e2_mask for f in features], dtype=torch.long)  # add e2 mask
-        dataset = TensorDataset(all_input_ids, all_attention_mask,
-                                all_token_type_ids, all_label_ids, all_e1_mask, all_e2_mask)
-    elif args.task_type == 'wic':
-        all_keys = torch.tensor([f.keys for f in features], dtype=torch.long)
-        dataset = TensorDataset(all_input_ids, all_attention_mask,
-                                all_token_type_ids, all_label_ids, all_ids, all_true_ids, all_keys)
-    else:
-        dataset = TensorDataset(all_input_ids, all_attention_mask,
-                                all_token_type_ids, all_label_ids, all_ids, all_true_ids)
+    # if args.task_type == 're':
+    #     all_e1_mask = torch.tensor([f.e1_mask for f in features], dtype=torch.long)  # add e1 mask
+    #     all_e2_mask = torch.tensor([f.e2_mask for f in features], dtype=torch.long)  # add e2 mask
+    #     dataset = TensorDataset(all_input_ids, all_attention_mask,
+    #                             all_token_type_ids, all_label_ids, all_e1_mask, all_e2_mask)
+    # elif args.task_type == 'wic':
+    #     all_keys = torch.tensor([f.keys for f in features], dtype=torch.long)
+    #     dataset = TensorDataset(all_input_ids, all_attention_mask,
+    #                             all_token_type_ids, all_label_ids, all_ids, all_true_ids, all_keys)
+    # else:
+    #     dataset = TensorDataset(all_input_ids, all_attention_mask,
+    #                             all_token_type_ids, all_label_ids, all_ids, all_true_ids)
 
-    return dataset, len(features)
+    # return dataset, len(features)
