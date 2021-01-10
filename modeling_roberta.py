@@ -1,5 +1,5 @@
 from transformers import RobertaModel, BertPreTrainedModel, RobertaConfig
-from transformers_v2.modeling_roberta import RobertaClassificationHead
+from transformers.modeling_roberta import RobertaClassificationHead
 import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss, KLDivLoss
