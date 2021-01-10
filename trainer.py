@@ -110,17 +110,19 @@ class Trainer(object):
             for step, batch in enumerate(epoch_iterator):
                 self.model.train()
                 batch = tuple(t.to(self.device) for t in batch)  # GPU or CPU
-                input_ids, input_mask, segment_ids, label_ids, valid_ids,l_mask = batch
-
                 inputs = {'input_ids':      batch[0],
                         'attention_mask': batch[1],
                         'token_type_ids': batch[2],
                         'labels':         batch[3]}
                 # outputs = self.model(**inputs)
-                # loss1 = outputs[0]
+                # loss = outputs[0]
                 # logits = outputs[1]
-                outputs = self.model(input_ids, segment_ids, input_mask, label_ids,valid_ids,l_mask)
-                loss = outputs #[0] 
+                
+                outputs = self.model(**inputs)
+                loss, logits = outputs[0], outputs[1]
+                print(logits)
+                logger.info(logits)
+                
                 # loss = criterion(input = F.log_softmax(logits), target = self.label_matrix[batch[3]].to(self.device))
                 if self.args.gradient_accumulation_steps > 1:
                     loss = loss / self.args.gradient_accumulation_steps
