@@ -10,8 +10,8 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Conca
 from transformers import BertConfig, AdamW, get_linear_schedule_with_warmup
 import copy
 import math
-from model import RBERT
-from utils import set_seed, write_f1_tc, write_prediction_re, write_prediction_tc, write_prediction_wic, compute_metrics, get_label, MODEL_CLASSES, WiCMODEL_CLASSES, ReMODEL_CLASSES, ContrastiveLoss, SoftContrastiveLoss
+# from utils import set_seed, write_f1_tc, write_prediction_re, write_prediction_tc, write_prediction_wic, compute_metrics, get_label, MODEL_CLASSES, WiCMODEL_CLASSES, ReMODEL_CLASSES, ContrastiveLoss, SoftContrastiveLoss
+from utils import set_seed, write_f1_tc, write_prediction_re, write_prediction_tc, write_prediction_wic, compute_metrics, get_label, MODEL_CLASSES,  ContrastiveLoss, SoftContrastiveLoss
 
 logger = logging.getLogger(__name__)
 

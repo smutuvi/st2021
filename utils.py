@@ -7,9 +7,9 @@ import numpy as np
 from transformers import BertTokenizer, BertConfig, AlbertConfig, AlbertTokenizer, RobertaConfig, RobertaTokenizer
 
 #from official_eval import official_f1
-from model import RBERT, BERT_model, WiCBERT, ReBERT
+# from model import RBERT, BERT_model, WiCBERT, ReBERT
+from model import BERT_model
 from sklearn.metrics import recall_score, precision_recall_fscore_support
-
 
 MODEL_CLASSES = {
     'bert': (BertConfig, BERT_model, BertTokenizer),
@@ -26,14 +26,14 @@ MODEL_PATH_MAP = {
 ADDITIONAL_SPECIAL_TOKENS = ["<e1>", "</e1>", "<e2>", "</e2>"]
 
 WiCMODEL_CLASSES = {
-    'bert': (BertConfig, WiCBERT, BertTokenizer),
-    'roberta': (RobertaConfig, WiCBERT, RobertaTokenizer),
-    'albert': (AlbertConfig, WiCBERT, AlbertTokenizer)
+    'bert': (BertConfig, BertTokenizer),
+    'roberta': (RobertaConfig,  RobertaTokenizer),
+    'albert': (AlbertConfig, AlbertTokenizer)
 }
 ReMODEL_CLASSES = {
-    'bert': (BertConfig, ReBERT, BertTokenizer),
-    'roberta': (RobertaConfig, ReBERT, RobertaTokenizer),
-    'albert': (AlbertConfig, ReBERT, AlbertTokenizer)
+    'bert': (BertConfig, BertTokenizer),
+    'roberta': (RobertaConfig,  RobertaTokenizer),
+    'albert': (AlbertConfig, AlbertTokenizer)
 }
 
 
