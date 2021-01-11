@@ -9,12 +9,11 @@ def main(args):
     init_logger()
     tokenizer = load_tokenizer(args)
 
-
-    train_dataset, relation_labels, num_labels, id2label, label2id, train_size  = load_and_cache_examples(args, tokenizer, mode="train")
-    dev_dataset, relation_labels, num_labels, id2label, label2id, dev_size = load_and_cache_examples(args, tokenizer, mode="dev")
-    test_dataset, relation_labels, num_labels, id2label, label2id,test_size = load_and_cache_examples(args, tokenizer, mode="test")
+    train_dataset, train_size  = load_and_cache_examples(args, tokenizer, mode="train")
+    dev_dataset, dev_size = load_and_cache_examples(args, tokenizer, mode="dev")
+    test_dataset, test_size = load_and_cache_examples(args, tokenizer, mode="test")
     unlabeled_dataset, unlabeled_size = load_and_cache_unlabeled_examples(args, tokenizer, mode = 'unlabeled', train_size = train_size)
-    print(relation_labels, 'number of labels:', num_labels)
+    # print(relation_labels, 'number of labels:', num_labels)
     print('train_size:', train_size)
     print('dev_size:', dev_size)
     print('test_size:', test_size)
@@ -22,12 +21,13 @@ def main(args):
     import time
     time.sleep(1.6)
 
+
     #assert 0
     trainer = Trainer(args, train_dataset=train_dataset, dev_dataset=dev_dataset,test_dataset=test_dataset, labelset = relation_labels, \
             unlabeled = unlabeled_dataset, \
             #masked_train_dataset = masked_train_dataset, masked_dev_dataset = masked_dev_dataset, \
             #masked_test_dataset = masked_test_dataset, masked_unlabeled_dataset = masked_unlabeled_dataset, \
-            num_labels = num_labels, id2label = id2label, label2id = label2id, data_size = train_size
+            data_size = train_size
             )
 
     if args.do_train:
