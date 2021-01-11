@@ -13,7 +13,6 @@ from transformers import (
     AlbertForMaskedLM
     )
 from modeling_roberta import RobertaForSequenceClassification_v2
-from modeling_roberta import RobertaForTokenClassification_v2
 from transformers.modeling_roberta import RobertaLMHead
 from transformers.modeling_bert import BertOnlyMLMHead
 from transformers.modeling_albert import AlbertMLMHead
@@ -38,8 +37,7 @@ PRETRAINED_MODEL_MAP_SeqClass = {
 
 PRETRAINED_MODEL_MAP_TokenClass = {
     'bert': BertForTokenClassification,
-    # 'roberta': RobertaModel,
-    'roberta': RobertaForTokenClassification_v2,
+    'roberta': RobertaModel,
     'albert': AlbertModel
 }
 

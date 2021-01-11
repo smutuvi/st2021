@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class Trainer(object):
     def __init__(self, args, train_dataset = None, dev_dataset = None, test_dataset = None, labelset = None, unlabeled = None, \
-                num_labels = 10, id2label = None, label2id = None, data_size = 100):
+                num_labels = 3, id2label = None, label2id = None, data_size = 100):
                 #masked_train_dataset = None, masked_dev_dataset = None,  masked_test_dataset = None, masked_unlabeled_dataset = None):
         self.args = args
         self.train_dataset = train_dataset
