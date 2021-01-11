@@ -60,12 +60,14 @@ class BERT_model(BertPreTrainedModel):
     def __init__(self, bert_config, args):
         super(BERT_model, self).__init__(bert_config)
         print(args.task_type)
-        if args.task_type == 're' or 'tc':
-            self.bert = PRETRAINED_MODEL_MAP_SeqClass[args.model_type].from_pretrained(args.model_name_or_path, config=bert_config)  # Load pretrained bert
-        else:
+ 
+        if args.task_type == 'ner':
             self.bert = PRETRAINED_MODEL_MAP_TokenClass[args.model_type].from_pretrained(args.model_name_or_path, config=bert_config)  # Load pretrained bert
+        else:
+            self.bert = PRETRAINED_MODEL_MAP_SeqClass[args.model_type].from_pretrained(args.model_name_or_path, config=bert_config)  # Load pretrained bert
         #self.fc_layer = FCLayer(bert_config.hidden_size, bert_config.num_labels, args.dropout_rate, use_activation=False)
         #self.lm_head = RobertaLMHead(config = bert_config)
+        
         self.args = args
 
     def forward(self, input_ids, attention_mask, token_type_ids, inputs_embeds = None, labels = None, e1_mask = None, e2_mask = None):
