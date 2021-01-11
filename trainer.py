@@ -232,7 +232,8 @@ class Trainer(object):
     def train(self):
         if self.args.method == 'clean':
             print('clean data!')
-            concatdataset = ConcatDataset([self.train_dataset, self.unlabeled])
+            # concatdataset = ConcatDataset([self.train_dataset, self.unlabeled])
+            concatdataset = self.train_dataset
             train_sampler = RandomSampler(concatdataset)
             train_dataloader = DataLoader(concatdataset, sampler=train_sampler, batch_size = self.args.batch_size)
         else:

@@ -1,6 +1,6 @@
 task=epidemic
 gpu=0
-method=selftrain
+method=clean
 max_seq_len=128
 batch_size=32
 echo ${method}
