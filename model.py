@@ -59,6 +59,7 @@ class FCLayer(nn.Module):
 class BERT_model(BertPreTrainedModel):
     def __init__(self, bert_config, args):
         super(BERT_model, self).__init__(bert_config)
+        print(args.task_type)
         if args.task_type == 're' or 'tc':
             self.bert = PRETRAINED_MODEL_MAP_SeqClass[args.model_type].from_pretrained(args.model_name_or_path, config=bert_config)  # Load pretrained bert
         else:
