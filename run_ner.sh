@@ -1,3 +1,4 @@
+task=epidemic
 MAX_LENGTH=256
 MODEL=roberta-base
 OUTPUT_DIR=output_dir
@@ -18,6 +19,7 @@ python3 run_ner.py \
   --save_steps=${SAVE_STEPS} \
   --logging_steps=${LOGGING_STEPS} \
   --seed=${SEED} \
+  --task=${task} \
   --do_train \
   --do_eval \
   --do_predict \

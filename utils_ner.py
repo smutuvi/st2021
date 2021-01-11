@@ -198,7 +198,6 @@ def convert_examples_to_features(
         )
     return features
 
-
 def get_labels(path):
     if path:
         with open(path, "r") as f:
