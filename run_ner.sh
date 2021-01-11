@@ -12,7 +12,7 @@ python3 main.py \
 	--dev_file=dev.txt \
 	--test_file=test.txt \
 	--unlabel_file=unlabeled.txt \
-	--task_type=tc \
+	--task_type=ner \
 	--data_dir="data" \
 	--rule=0 \
 	--logging_steps=100 \
