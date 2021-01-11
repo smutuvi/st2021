@@ -8,15 +8,15 @@ from transformers import RobertaForTokenClassification, BertTokenizer, BertConfi
 
 #from official_eval import official_f1
 # from model import RBERT, BERT_model, WiCBERT, ReBERT
-# from model import BERT_model
+from model import BERT_model
 from sklearn.metrics import recall_score, precision_recall_fscore_support
 from modeling_roberta import RobertaForTokenClassification_v2
 
 
 MODEL_CLASSES = {
     # 'bert': (BertConfig, BERT_model, BertTokenizer),
-    # 'roberta': (RobertaConfig, BERT_model, RobertaTokenizer),
-    'roberta': (RobertaConfig, RobertaForTokenClassification, RobertaTokenizer),
+    'roberta': (RobertaConfig, BERT_model, RobertaTokenizer),
+    # 'roberta': (RobertaConfig, RobertaForTokenClassification, RobertaTokenizer),
     # 'albert': (AlbertConfig, BERT_model, AlbertTokenizer)
 }
 

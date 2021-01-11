@@ -24,11 +24,11 @@ def main(args):
 
 
     #assert 0
-    trainer = Trainer(args, train_dataset=train_dataset, dev_dataset=dev_dataset,test_dataset=test_dataset, \
-            # unlabeled = unlabeled_dataset, \
+    trainer = Trainer(args, train_dataset=train_dataset, dev_dataset=dev_dataset,test_dataset=test_dataset, labelset = None, \
+            unlabeled = None, \
             #masked_train_dataset = masked_train_dataset, masked_dev_dataset = masked_dev_dataset, \
             #masked_test_dataset = masked_test_dataset, masked_unlabeled_dataset = masked_unlabeled_dataset, \
-            data_size = train_size
+            num_labels = 11, id2label = None, label2id = None, data_size = train_size
             )
 
     if args.do_train:
