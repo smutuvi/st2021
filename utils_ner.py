@@ -124,8 +124,9 @@ class NerProcessor(DataProcessor):
         examples = []
         for i,(sentence,label) in enumerate(lines):
             guid = "%s-%s" % (set_type, i)
-            text_a = ' '.join(sentence)
-            text_b = None
+            # text_a = ' '.join(sentence)
+            text_a = sentence
+            # text_b = None
             label = label
             # if set_type in ['unlabeled']:
             #     label = label
