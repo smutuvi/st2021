@@ -26,7 +26,8 @@ logger = logging.getLogger(__name__)
 class InputExample(object):
     """A single training/test example for token classification."""
 
-    def __init__(self, guid, words, labels):
+    # def __init__(self, guid, words, labels):
+    def __init__(self, guid, text_a, label=None, true = -1):
         """Constructs a InputExample.
 
         Args:
@@ -36,8 +37,13 @@ class InputExample(object):
             specified for train and dev examples, but not for test examples.
         """
         self.guid = guid
-        self.words = words
-        self.labels = labels
+        self.text_a = text_a
+        self.label = label
+        self.true = true
+        
+        # self.guid = guid
+        # self.words = words
+        # self.labels = labels
 
 
 class InputFeatures(object):
@@ -128,7 +134,7 @@ class NerProcessor(DataProcessor):
             #     # # label = -1
             # else:
             #     label = label
-            examples.append(InputExample(guid=guid,text_a=text_a,text_b=text_b,label=label))
+            examples.append(InputExample(guid=guid,text_a=text_a,label=label))
         return examples
 
     def get_examples(self, mode):
@@ -182,7 +188,7 @@ def convert_examples_to_features(
 
         tokens = []
         label_ids = []
-        for word, label in zip(example.words, example.labels):
+        for word, label in zip(example.text_a, example.label):
             word_tokens = tokenizer.tokenize(word)
 
             # bert-base-multilingual-cased sometimes output "nothing ([]) when calling tokenize with just a space.
