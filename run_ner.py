@@ -384,7 +384,7 @@ def load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode):
     all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
     all_input_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
     all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
-    all_label_ids = torch.tensor([f.label_id for f in features], dtype=torch.long)
+    all_label_ids = torch.tensor([f.label_ids for f in features], dtype=torch.long)
     # all_valid_ids = torch.tensor([f.valid_ids for f in features], dtype=torch.long)
     # all_lmask_ids = torch.tensor([f.label_mask for f in features], dtype=torch.long)
 
