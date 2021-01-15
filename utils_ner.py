@@ -274,4 +274,4 @@ def convert_examples_to_features(
         features.append(
             InputFeatures(input_ids=input_ids, input_mask=input_mask, segment_ids=segment_ids, label_ids=label_ids)
         )
-    return features, len(features)
+    return features

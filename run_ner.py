@@ -706,11 +706,11 @@ def main():
         # print(get_labels())
         
         
-        train_dataset, train_size = load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode="train")
+        train_dataset = load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode="train")
         global_step, tr_loss = train(args, train_dataset, model, tokenizer, labels, pad_token_label_id)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
         print("="*20)
-        print(train_size)
+        
 
     # Saving best-practices: if you use defaults names for the model, you can reload it using from_pretrained()
     if args.do_train and (args.local_rank == -1 or torch.distributed.get_rank() == 0):
