@@ -391,7 +391,7 @@ def load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode):
     # dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids,all_valid_ids,all_lmask_ids)
 
     dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
-    return dataset
+    return dataset, size
 
 # def load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode):
 #     if args.local_rank not in [-1, 0] and not evaluate:
@@ -706,10 +706,11 @@ def main():
         # print(get_labels())
         
         
-        train_dataset = load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode="train")
+        train_dataset, train_size = load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode="train")
         global_step, tr_loss = train(args, train_dataset, model, tokenizer, labels, pad_token_label_id)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
         print("="*20)
+        print('train size:', train_size)
         
 
     # Saving best-practices: if you use defaults names for the model, you can reload it using from_pretrained()
