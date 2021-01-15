@@ -120,10 +120,11 @@ class NerProcessor(DataProcessor):
         # return ["O", "B-MISC", "I-MISC", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "[CLS]", "[SEP]"]
         return ["O", "B-MISC", "I-MISC", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC"]
 
-    def _create_examples(self,lines,set_type):
+    def _create_examples(self, lines, set_type):
         examples = []
         for i,(sentence, label_) in enumerate(lines):
             guid = "%s-%s" % (set_type, i)
+            # text_a = ' '.join(sentence)
             text_a = sentence
             label = label_
             # if set_type in ['unlabeled']:
@@ -148,8 +149,8 @@ class NerProcessor(DataProcessor):
             file_to_read = self.args.dev_file
         elif mode == 'test':
             file_to_read = self.args.test_file
-        # elif mode == 'unlabeled':
-        #     file_to_read = self.args.unlabel_file
+        elif mode == 'unlabeled':
+            file_to_read = self.args.unlabel_file
 
         logger.info("LOOKING AT {}".format(os.path.join(self.args.data_dir, file_to_read)))
         return self._create_examples(self._read_tsv(os.path.join(self.args.data_dir, file_to_read)), mode)
@@ -273,4 +274,4 @@ def convert_examples_to_features(
         features.append(
             InputFeatures(input_ids=input_ids, input_mask=input_mask, segment_ids=segment_ids, label_ids=label_ids)
         )
-    return features
+    return features, len(features)
