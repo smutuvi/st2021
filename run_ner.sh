@@ -7,6 +7,7 @@ NUM_EPOCHS=1
 SAVE_STEPS=100
 LOGGING_STEPS=100
 SEED=42
+method=clean
 python3 run_ner.py \
   --data_dir=./data \
   --model_type=roberta \
@@ -18,6 +19,8 @@ python3 run_ner.py \
   --per_gpu_train_batch_size=${BATCH_SIZE} \
   --save_steps=${SAVE_STEPS} \
   --logging_steps=${LOGGING_STEPS} \
+	--method=${method} \
+  --rule=0 \
   --seed=${SEED} \
   --task=${task} \
 	--train_file=train.txt \
