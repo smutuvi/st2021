@@ -250,7 +250,7 @@ def train(args, train_dataset, model, tokenizer, labels, pad_token_label_id):
 
 
 def evaluate(args, model, tokenizer, labels, pad_token_label_id, mode, prefix=""):
-    eval_dataset = load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode=mode)
+    eval_dataset, eval_size = load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode=mode)
 
     args.eval_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
     # Note that DistributedSampler samples randomly
@@ -266,6 +266,7 @@ def evaluate(args, model, tokenizer, labels, pad_token_label_id, mode, prefix=""
     logger.info("  Num examples = %d", len(eval_dataset))
     logger.info("  Batch size = %d", args.eval_batch_size)
     print(mode,":  Num examples = %d", len(eval_dataset))
+    
     eval_loss = 0.0
     nb_eval_steps = 0
     preds = None
