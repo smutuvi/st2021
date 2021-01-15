@@ -707,10 +707,12 @@ def main():
         
         
         train_dataset, train_size = load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode="train")
-        global_step, tr_loss = train(args, train_dataset, model, tokenizer, labels, pad_token_label_id)
-        logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
         print("="*20)
         print('train size:', train_size)
+        
+        global_step, tr_loss = train(args, train_dataset, model, tokenizer, labels, pad_token_label_id)
+        logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
+       
         
 
     # Saving best-practices: if you use defaults names for the model, you can reload it using from_pretrained()
