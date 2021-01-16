@@ -79,7 +79,7 @@ def train(args, train_dataset, unlabeled_dataset, model, tokenizer, labels, pad_
     if args.method == 'clean':
         concatdataset = ConcatDataset([train_dataset, unlabeled_dataset])
         train_sampler = RandomSampler(concatdataset)
-        train_dataloader = DataLoader(concatdataset, sampler=train_sampler, batch_size = args.batch_size)        
+        train_dataloader = DataLoader(concatdataset, sampler=train_sampler, batch_size = args.train_batch_size)        
     else:
         args.train_batch_size = args.per_gpu_train_batch_size * max(1, args.n_gpu)
         train_sampler = RandomSampler(train_dataset) if args.local_rank == -1 else DistributedSampler(train_dataset)
