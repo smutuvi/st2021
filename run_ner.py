@@ -39,7 +39,7 @@ from transformers import (
     AutoTokenizer,
     get_linear_schedule_with_warmup,
 )
-from utils_ner import convert_examples_to_features, get_labels, NerProcessor
+from utils_ner import convert_examples_to_features, load_and_cache_unlabeled_examples, get_labels, NerProcessor
 # from utils_ner import convert_examples_to_features, get_labels, read_examples_from_file
 
 processors = {
@@ -323,6 +323,66 @@ def evaluate(args, model, tokenizer, labels, pad_token_label_id, mode, prefix=""
 
     return results, preds_list
 
+def load_and_cache_unlabeled_examples(args, tokenizer, labels, pad_token_label_id, mode, train_size = 100):
+
+    processor = processors[args.task](args)
+
+    # Load data features from cache or dataset file
+    cached_features_file = os.path.join(
+        args.data_dir,
+        'cached_{}_{}_{}_{}_unlabel_{}'.format(
+            mode,
+            args.task,
+            list(filter(None, args.model_name_or_path.split("/"))).pop(),
+            str(args.max_seq_length),
+            'dist' if args.rule == 1 else 'clean'
+        )
+    )
+    
+    if os.path.exists(cached_features_file) and args.auto_load:
+        logger.info("Loading features from cached file %s", cached_features_file)
+        features = torch.load(cached_features_file)
+    else:
+        logger.info("Creating features from dataset file at %s", args.data_dir)
+
+        assert mode == "unlabeled"
+        examples = processor.get_examples("unlabeled")
+        
+        # features = convert_examples_to_features(examples, args.max_seq_len, tokenizer, task = args.task_type)
+        features = convert_examples_to_features(
+            examples,
+            labels,
+            args.max_seq_length,
+            tokenizer,
+            cls_token_at_end=bool(args.model_type in ["xlnet"]),
+            # xlnet has a cls token at the end
+            cls_token=tokenizer.cls_token,
+            cls_token_segment_id=2 if args.model_type in ["xlnet"] else 0,
+            sep_token=tokenizer.sep_token,
+            sep_token_extra=bool(args.model_type in ["roberta"]),
+            # roberta uses an extra separator b/w pairs of sentences, cf. github.com/pytorch/fairseq/commit/1684e166e3da03f5b600dbb7855cb98ddfcd0805
+            pad_on_left=bool(args.model_type in ["xlnet"]),
+            # pad on the left for xlnet
+            pad_token=tokenizer.pad_token_id,
+            pad_token_segment_id=tokenizer.pad_token_type_id,
+            pad_token_label_id=pad_token_label_id,
+        )
+        logger.info("Saving features into cached file %s", cached_features_file)
+        torch.save(features, cached_features_file)
+        
+    size = len(features)
+    print(size)
+  
+ # Convert to Tensors and build dataset
+    all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
+    all_input_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
+    all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
+    all_label_ids = torch.tensor([f.label_ids for f in features], dtype=torch.long)
+
+    dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
+    return dataset, size
+
+
 def load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode):
 
     processor = processors[args.task](args)
@@ -339,7 +399,7 @@ def load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode):
             'dist' if args.rule == 1 else 'clean'
         ),
     )
-
+        
     # print(f'HERE: {processor}')
     if os.path.exists(cached_features_file) and args.auto_load:
     # if os.path.exists(cached_features_file) and not args.overwrite_cache:
@@ -727,8 +787,11 @@ def main():
         
         
         train_dataset, train_size = load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode="train")
+        unlabeled_dataset, unlabeled_size = load_and_cache_unlabeled_examples(args, tokenizer, mode = 'unlabeled', train_size = train_size)
+
         print("="*20)
         print('train size:', train_size)
+        print('unlabel_size:', unlabeled_size)
         
         global_step, tr_loss = train(args, train_dataset, model, tokenizer, labels, pad_token_label_id)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
