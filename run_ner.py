@@ -39,7 +39,7 @@ from transformers import (
     AutoTokenizer,
     get_linear_schedule_with_warmup,
 )
-from utils_ner import convert_examples_to_features, load_and_cache_unlabeled_examples, get_labels, NerProcessor
+from utils_ner import convert_examples_to_features, get_labels, NerProcessor
 # from utils_ner import convert_examples_to_features, get_labels, read_examples_from_file
 
 processors = {
