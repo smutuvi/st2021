@@ -126,14 +126,14 @@ class NerProcessor(DataProcessor):
             guid = "%s-%s" % (set_type, i)
             # text_a = ' '.join(sentence)
             text_a = sentence
-            label = label_
-            # if set_type in ['unlabeled']:
-            #     label = label_
-            # #     for x in range(len(sentence)):
-            # #         label[x] = -1
-            # #     # label = -1
-            # else:
-            #     label = label_
+            # label = label_
+            if set_type in ['unlabeled']:
+                label = -1
+            #     for x in range(len(sentence)):
+            #         label[x] = -1
+            #     # label = -1
+            else:
+                label = label_
             examples.append(InputExample(guid=guid, text_a=text_a, label=label))
         return examples
 
