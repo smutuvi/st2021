@@ -77,6 +77,7 @@ def train(args, train_dataset, unlabeled_dataset, model, tokenizer, labels, pad_
         tb_writer = SummaryWriter()
     
     if args.method == 'clean':
+        args.train_batch_size = args.per_gpu_train_batch_size * max(1, args.n_gpu)
         concatdataset = ConcatDataset([train_dataset, unlabeled_dataset])
         train_sampler = RandomSampler(concatdataset)
         train_dataloader = DataLoader(concatdataset, sampler=train_sampler, batch_size = args.train_batch_size)        
