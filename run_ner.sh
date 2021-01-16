@@ -26,6 +26,7 @@ python3 run_ner.py \
 	--train_file=train.txt \
 	--dev_file=dev.txt \
 	--test_file=test.txt \
+  --unlabel_file=unlabeled.txt \
   --do_train \
   --do_eval \
   --do_predict \

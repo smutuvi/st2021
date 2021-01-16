@@ -558,7 +558,13 @@ def main():
         default="",
         type=str,
         help="Test data file",
-    )   
+    )
+    parser.add_argument(
+        "--unlabel_file",
+        default="",
+        type=str,
+        help="Unlabeled data file",
+    )
     # Other parameters
     parser.add_argument(
         "--rule", 
