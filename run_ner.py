@@ -793,7 +793,7 @@ def main():
         
         
         train_dataset, train_size = load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, mode="train")
-        unlabeled_dataset, unlabeled_size = load_and_cache_unlabeled_examples(args, tokenizer, mode = 'unlabeled', train_size = train_size)
+        unlabeled_dataset, unlabeled_size = load_and_cache_unlabeled_examples(args, tokenizer, labels, pad_token_label_id, mode = 'unlabeled', train_size = train_size)
 
         print("="*20)
         print('train size:', train_size)
