@@ -26,7 +26,7 @@ import numpy as np
 import torch
 from seqeval.metrics import f1_score, precision_score, recall_score
 from torch.nn import CrossEntropyLoss
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset, ConcatDataset
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
 
@@ -70,15 +70,20 @@ def set_seed(args):
         torch.cuda.manual_seed_all(args.seed)
 
 
-def train(args, train_dataset, model, tokenizer, labels, pad_token_label_id):
+def train(args, train_dataset, unlabeled_dataset, model, tokenizer, labels, pad_token_label_id):
     """ Train the model """
     print(args.task)
     if args.local_rank in [-1, 0]:
         tb_writer = SummaryWriter()
-
-    args.train_batch_size = args.per_gpu_train_batch_size * max(1, args.n_gpu)
-    train_sampler = RandomSampler(train_dataset) if args.local_rank == -1 else DistributedSampler(train_dataset)
-    train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
+    
+    if args.method == 'clean':
+        concatdataset = ConcatDataset([train_dataset, unlabeled_dataset])
+        train_sampler = RandomSampler(concatdataset)
+        train_dataloader = DataLoader(concatdataset, sampler=train_sampler, batch_size = args.batch_size)        
+    else:
+        args.train_batch_size = args.per_gpu_train_batch_size * max(1, args.n_gpu)
+        train_sampler = RandomSampler(train_dataset) if args.local_rank == -1 else DistributedSampler(train_dataset)
+        train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
 
     if args.max_steps > 0:
         t_total = args.max_steps
@@ -799,7 +804,7 @@ def main():
         print('train size:', train_size)
         print('unlabel_size:', unlabeled_size)
         
-        global_step, tr_loss = train(args, train_dataset, model, tokenizer, labels, pad_token_label_id)
+        global_step, tr_loss = train(args, train_dataset, unlabeled_dataset, model, tokenizer, labels, pad_token_label_id)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
        
         

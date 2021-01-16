@@ -128,7 +128,7 @@ class NerProcessor(DataProcessor):
             text_a = sentence
             # label = label_
             if set_type in ['unlabeled']:
-                label = 'UNK'
+                label = label_
             #     for x in range(len(sentence)):
             #         label[x] = -1
             #     # label = -1
