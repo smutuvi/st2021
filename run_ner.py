@@ -760,6 +760,111 @@ def main():
         args.rule = 0
     else:
         args.rule = 1 
+        
+    def selftrain(self, soft = True):
+            selftrain_dataset = ConcatDataset([self.train_dataset, self.unlabeled])
+            ## generating pseudo_labels
+            pseudo_labels = []
+            train_sampler = RandomSampler(selftrain_dataset)
+            train_dataloader = DataLoader(selftrain_dataset, sampler=train_sampler, batch_size=args.batch_size)
+            if args.self_training_max_step > 0:
+                t_total = args.self_training_max_step
+                args.num_train_epochs = args.self_training_max_step // (len(train_dataloader) // args.gradient_accumulation_steps) + 1
+            else:
+                t_total = len(train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs
+
+            # Prepare optimizer and schedule (linear warmup and decay)
+            no_decay = ['bias', 'LayerNorm.weight']
+            optimizer_grouped_parameters = [
+                {'params': [p for n, p in self.model.named_parameters() if not any(nd in n for nd in no_decay)],
+                'weight_decay': args.weight_decay},
+                {'params': [p for n, p in self.model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+            ]
+            optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
+            scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=args.warmup_steps, num_training_steps=t_total)
+            self_training_loss = nn.KLDivLoss(reduction = 'none') if soft else nn.CrossEntropyLoss(reduction = 'none')
+            softmax = nn.Softmax(dim=1)
+            update_step = 0
+            self_training_steps = args.self_training_max_step
+            global_step = 0
+            selftrain_loss = 0
+            set_seed(args)
+            #self.model.zero_grad()
+            for t3 in range(int(self_training_steps/len(train_dataloader)) + 1):
+                epoch_iterator = tqdm(train_dataloader, desc="SelfTrain, Iteration")
+                for step, batch in enumerate(epoch_iterator):
+                    if global_step % args.self_training_update_period == 0:
+                        teacher_model = copy.deepcopy(self.model) #.to("cuda")
+                        teacher_model.eval()
+                        for p in teacher_model.parameters():
+                            p.requires_grad = False
+                    self.model.train()
+                    batch = tuple(t.to(self.device) for t in batch)  # GPU or CPU     
+                    inputs = {
+                                'input_ids': batch[0],
+                                'attention_mask': batch[1],
+                                'token_type_ids': batch[2],
+
+                            }
+                    #self.model.eval()
+                    if args.task_type=='wic':
+                        inputs['keys'] = batch[6]
+                    elif args.task_type=='re':
+                        inputs['e1_mask'] = batch[4]
+                        inputs['e2_mask'] = batch[5]
+                    outputs = self.model(**inputs)
+                    outputs_pseudo = teacher_model(**inputs)
+
+                    logits = outputs[0]
+                    true_labels = batch[-1]
+                    
+                    loss = self.calc_loss(input = torch.log(softmax(logits)), \
+                                            target= outputs_pseudo[0], \
+                                            loss = self_training_loss, \
+                                            thresh = args.self_training_eps, \
+                                            soft = soft, \
+                                            conf = 'entropy', \
+                                            confreg = args.self_training_confreg)
+
+                    if args.self_training_contrastive_weight > 0:
+                        contrastive_loss = self.contrastive_loss(input = torch.log(softmax(logits)), \
+                                            feat = outputs_pseudo[-1], \
+                                            target= outputs_pseudo[0], \
+                                            conf = 'entropy', \
+                                            thresh =  args.self_training_eps, \
+                                            distmetric = args.distmetric, \
+                                            )
+                        loss = loss + args.self_training_contrastive_weight * contrastive_loss
+
+                    if args.gradient_accumulation_steps > 1:
+                        loss = loss / args.gradient_accumulation_steps
+                    if torch.cuda.device_count() > 1:
+                        loss = loss.mean()
+                    selftrain_loss += loss.item()
+                    loss.backward()
+                    if (step + 1) % args.gradient_accumulation_steps == 0:
+                        torch.nn.utils.clip_grad_norm_(self.model.parameters(), args.max_grad_norm)
+
+                        optimizer.step()
+                        scheduler.step()  # Update learning rate schedule
+                        self.model.zero_grad()
+                        teacher_model.zero_grad()
+                        global_step += 1
+                        epoch_iterator.set_description("SelfTrain iter:%d Loss:%.3f m:%.3f" % (step, selftrain_loss/global_step, ))
+                        if args.logging_steps > 0 and global_step % args.self_train_logging_steps == 0:
+                            self.evaluate('dev', global_step)
+                            self.evaluate('test', global_step)
+
+                        if args.save_steps > 0 and global_step % args.save_steps == 0:
+                            self.save_model()
+
+                    if 0 < args.self_training_max_step < global_step:
+                        epoch_iterator.close()
+                        break
+
+                if 0 < args.self_training_max_step < global_step:
+                    break
+            pass  
     
     print('YYYYYYYYYY== ', args.method)
 
@@ -867,7 +972,7 @@ def main():
         print('train size:', train_size)
         print('unlabel_size:', unlabeled_size)
         
-        global_step, tr_loss = train(args, train_dataset, unlabeled_dataset, model, tokenizer, labels, pad_token_label_id)
+        global_step, tr_loss = selftrain(args, train_dataset, unlabeled_dataset, model, tokenizer, labels, pad_token_label_id)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
        
         
