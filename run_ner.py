@@ -22,6 +22,11 @@ import logging
 import os
 import random
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import copy
+
 import numpy as np
 import torch
 from seqeval.metrics import f1_score, precision_score, recall_score
@@ -69,6 +74,30 @@ def set_seed(args):
     if args.n_gpu > 0:
         torch.cuda.manual_seed_all(args.seed)
 
+w = args.soft_label_weight
+k = (1-w)/(num_labels-1)
+label_matrix = torch.eye(num_labels) * (w - k) + k * torch.ones(num_labels)
+
+def calc_loss(self, input, target, loss, thresh = 0.95, soft = True, conf = 'max', confreg = 0.1):
+    softmax = nn.Softmax(dim=1)
+    target = softmax(target.view(-1, target.shape[-1])).view(target.shape)
+    
+    if conf == 'max':
+        weight = torch.max(target, axis = 1).values
+        w = torch.FloatTensor([1 if x == True else 0 for x in weight>thresh]).to(self.device)
+    elif conf == 'entropy':
+        weight = torch.sum(-torch.log(target+1e-6) * target, dim = 1)
+        weight = 1 - weight / np.log(weight.size(-1))
+        w = torch.FloatTensor([1 if x == True else 0 for x in weight>thresh]).to(self.device)
+    target = self.soft_frequency(target, probs = True, soft = soft)
+    
+    loss_batch = loss(input, target)
+
+    l = torch.sum(loss_batch * w.unsqueeze(1) * weight.unsqueeze(1))
+    
+    n_classes_ = input.shape[-1]
+    l -= confreg *( torch.sum(input * w.unsqueeze(1)) + np.log(n_classes_) * n_classes_ )
+    return l
 
 def train(args, train_dataset, unlabeled_dataset, model, tokenizer, labels, pad_token_label_id):
     """ Train the model """
@@ -689,6 +718,19 @@ def main():
     parser.add_argument("--server_port", type=str, default="", help="For distant debugging.")
 
     parser.add_argument("--method", default='clean', type=str, help="which method to use")
+
+    # self-training
+    parser.add_argument('--soft_label', type = int, default = 1, help = 'whether soft label (0 for hard, 1 for soft)')
+    parser.add_argument("--soft_label_weight", default=1.0, type=float, help="iters for pretrains")
+    parser.add_argument('--self_training_eps', type = float, default = 0.8, help = 'threshold for confidence')
+    parser.add_argument('--self_training_power', type = float, default = 2, help = 'power of pred score')
+    parser.add_argument('--self_training_confreg', type = float, default = 0, help = 'confidence smooth power')
+    parser.add_argument('--self_training_contrastive_weight', type = float, default = 0, help = 'contrastive learning weight')
+
+    parser.add_argument('--self_training_max_step', type = int, default = 10000, help = 'the maximum step (usually after the first epoch) for self training')    
+    parser.add_argument('--distmetric', type = str, default = "l2", help = 'distance type. Choices = [cos, l2]')
+    parser.add_argument('--self_training_label_mode', type = str, default = "hard", help = 'pseudo label type. Choices = [hard, soft]')
+    parser.add_argument('--self_training_update_period', type = int, default = 100, help = 'update period')
 
     args = parser.parse_args()
     
