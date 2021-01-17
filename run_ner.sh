@@ -31,3 +31,9 @@ python3 run_ner.py \
   --do_eval \
   --do_predict \
   --overwrite_output_dir \
+  --self_training_update_period=250 \
+	--max_steps=150 \
+	--self_training_max_step=2500 \
+	--self_training_power=2 \
+	--self_training_confreg=0.1 \
+	--self_training_contrastive_weight=1 \
