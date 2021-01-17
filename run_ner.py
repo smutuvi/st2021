@@ -709,6 +709,10 @@ def main():
 
     args = parser.parse_args()
     
+    # Prepare CONLL-2003 task
+    labels = get_labels(args.labels)
+    num_labels = len(labels)
+    
     w = args.soft_label_weight
     k = (1-w)/(num_labels-1)
     label_matrix = torch.eye(num_labels) * (w - k) + k * torch.ones(num_labels)
@@ -809,9 +813,7 @@ def main():
     # Set seed
     set_seed(args)
 
-    # Prepare CONLL-2003 task
-    labels = get_labels(args.labels)
-    num_labels = len(labels)
+
     # Use cross entropy ignore index as padding label id so that only real label ids contribute to the loss later
     pad_token_label_id = CrossEntropyLoss().ignore_index
 
