@@ -74,31 +74,6 @@ def set_seed(args):
     if args.n_gpu > 0:
         torch.cuda.manual_seed_all(args.seed)
 
-w = args.soft_label_weight
-k = (1-w)/(num_labels-1)
-label_matrix = torch.eye(num_labels) * (w - k) + k * torch.ones(num_labels)
-
-def calc_loss(self, input, target, loss, thresh = 0.95, soft = True, conf = 'max', confreg = 0.1):
-    softmax = nn.Softmax(dim=1)
-    target = softmax(target.view(-1, target.shape[-1])).view(target.shape)
-    
-    if conf == 'max':
-        weight = torch.max(target, axis = 1).values
-        w = torch.FloatTensor([1 if x == True else 0 for x in weight>thresh]).to(self.device)
-    elif conf == 'entropy':
-        weight = torch.sum(-torch.log(target+1e-6) * target, dim = 1)
-        weight = 1 - weight / np.log(weight.size(-1))
-        w = torch.FloatTensor([1 if x == True else 0 for x in weight>thresh]).to(self.device)
-    target = self.soft_frequency(target, probs = True, soft = soft)
-    
-    loss_batch = loss(input, target)
-
-    l = torch.sum(loss_batch * w.unsqueeze(1) * weight.unsqueeze(1))
-    
-    n_classes_ = input.shape[-1]
-    l -= confreg *( torch.sum(input * w.unsqueeze(1)) + np.log(n_classes_) * n_classes_ )
-    return l
-
 def train(args, train_dataset, unlabeled_dataset, model, tokenizer, labels, pad_token_label_id):
     """ Train the model """
     print(args.task)
@@ -733,6 +708,49 @@ def main():
     parser.add_argument('--self_training_update_period', type = int, default = 100, help = 'update period')
 
     args = parser.parse_args()
+    
+    w = args.soft_label_weight
+    k = (1-w)/(num_labels-1)
+    label_matrix = torch.eye(num_labels) * (w - k) + k * torch.ones(num_labels)
+
+    def calc_loss(self, input, target, loss, thresh = 0.95, soft = True, conf = 'max', confreg = 0.1):
+        softmax = nn.Softmax(dim=1)
+        target = softmax(target.view(-1, target.shape[-1])).view(target.shape)
+        
+        if conf == 'max':
+            weight = torch.max(target, axis = 1).values
+            w = torch.FloatTensor([1 if x == True else 0 for x in weight>thresh]).to(device)
+        elif conf == 'entropy':
+            weight = torch.sum(-torch.log(target+1e-6) * target, dim = 1)
+            weight = 1 - weight / np.log(weight.size(-1))
+            w = torch.FloatTensor([1 if x == True else 0 for x in weight>thresh]).to(device)
+        target = soft_frequency(target, probs = True, soft = soft)
+        
+        loss_batch = loss(input, target)
+
+        l = torch.sum(loss_batch * w.unsqueeze(1) * weight.unsqueeze(1))
+        
+        n_classes_ = input.shape[-1]
+        l -= confreg *( torch.sum(input * w.unsqueeze(1)) + np.log(n_classes_) * n_classes_ )
+        return l
+    
+    def soft_frequency(self, logits,  probs=False, soft = True):
+        """
+        Unsupervised Deep Embedding for Clustering Analysis
+        https://arxiv.org/abs/1511.06335
+        """
+        power = args.self_training_power
+        if not probs:
+            softmax = nn.Softmax(dim=1)
+            y = softmax(logits.view(-1, logits.shape[-1])).view(logits.shape)
+        else:
+            y = logits
+        f = torch.sum(y, dim=0)
+        t = y**power / f
+        #print('t', t)
+        t = t + 1e-10
+        p = t/torch.sum(t, dim=-1, keepdim=True)
+        return p if soft else torch.argmax(p, dim=1)
     
     if args.method == 'clean':
         args.rule = 0
