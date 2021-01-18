@@ -2,33 +2,32 @@ import argparse
 import os
 from trainer import Trainer
 from utils import init_logger, load_tokenizer, MODEL_CLASSES, MODEL_PATH_MAP
-# from data_loader_new import load_and_cache_examples, load_and_cache_unlabeled_examples
-from data_loader_new import load_and_cache_examples
+from data_loader_new import load_and_cache_examples, load_and_cache_unlabeled_examples
 
 
 def main(args):
     init_logger()
     tokenizer = load_tokenizer(args)
 
-    train_dataset, train_size  = load_and_cache_examples(args, tokenizer, mode="train")
-    dev_dataset, dev_size = load_and_cache_examples(args, tokenizer, mode="dev")
-    test_dataset, test_size = load_and_cache_examples(args, tokenizer, mode="test")
-    # unlabeled_dataset, unlabeled_size = load_and_cache_unlabeled_examples(args, tokenizer, mode = 'unlabeled', train_size = train_size)
-    # print(relation_labels, 'number of labels:', num_labels)
+
+    train_dataset, relation_labels, num_labels, id2label, label2id, train_size  = load_and_cache_examples(args, tokenizer, mode="train")
+    dev_dataset, relation_labels, num_labels, id2label, label2id, dev_size = load_and_cache_examples(args, tokenizer, mode="dev")
+    test_dataset, relation_labels, num_labels, id2label, label2id,test_size = load_and_cache_examples(args, tokenizer, mode="test")
+    unlabeled_dataset, unlabeled_size = load_and_cache_unlabeled_examples(args, tokenizer, mode = 'unlabeled', train_size = train_size)
+    print(relation_labels, 'number of labels:', num_labels)
     print('train_size:', train_size)
     print('dev_size:', dev_size)
     print('test_size:', test_size)
-    # print('unlabel_size:', unlabeled_size)
+    print('unlabel_size:', unlabeled_size)
     import time
     time.sleep(1.6)
 
-
     #assert 0
-    trainer = Trainer(args, train_dataset=train_dataset, dev_dataset=dev_dataset,test_dataset=test_dataset, labelset = None, \
-            unlabeled = None, \
+    trainer = Trainer(args, train_dataset=train_dataset, dev_dataset=dev_dataset,test_dataset=test_dataset, labelset = relation_labels, \
+            unlabeled = unlabeled_dataset, \
             #masked_train_dataset = masked_train_dataset, masked_dev_dataset = masked_dev_dataset, \
             #masked_test_dataset = masked_test_dataset, masked_unlabeled_dataset = masked_unlabeled_dataset, \
-            num_labels = 11, id2label = None, label2id = None, data_size = train_size
+            num_labels = num_labels, id2label = id2label, label2id = label2id, data_size = train_size
             )
 
     if args.do_train:
@@ -36,7 +35,7 @@ def main(args):
         #     trainer.pretrain()
         if args.method in ['clean', 'noisy', "noise"]:
             trainer.train()
-            # trainer.save_features()
+            trainer.save_features()
         elif args.method == 'selftrain':
             trainer.train()
             trainer.selftrain(soft = args.soft_label)
