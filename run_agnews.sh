@@ -8,12 +8,12 @@ python3 main.py \
 	--do_train \
 	--do_eval \
 	--task=${task} \
-	--train_file=train.tsv \
-	--dev_file=dev.tsv \
-	--test_file=test.tsv \
-	--unlabel_file=unlabeled.tsv \
+	--train_file=train_data.json \
+	--dev_file=dev_data.json \
+	--test_file=test_data.json \
+	--unlabel_file=unlabeled_data.json \
 	--task_type=tc \
-	--data_dir="data" \
+	--data_dir="data/agnews" \
 	--rule=0 \
 	--logging_steps=100 \
 	--self_train_logging_steps=100 \
