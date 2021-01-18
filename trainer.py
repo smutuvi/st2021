@@ -287,9 +287,9 @@ class Trainer(object):
                     inputs['e1_mask'] = batch[4]
                     inputs['e2_mask'] = batch[5]
                 outputs = self.model(**inputs)
-                loss1 = outputs[0]
-                logits = outputs[1]
-                loss = criterion(input = F.log_softmax(logits), target = self.label_matrix[batch[3]].to(self.device))
+                loss = outputs[0]
+                # logits = outputs[1]
+                # loss = criterion(input = F.log_softmax(logits), target = self.label_matrix[batch[3]].to(self.device))
                 if self.args.gradient_accumulation_steps > 1:
                     loss = loss / self.args.gradient_accumulation_steps
                 if torch.cuda.device_count() > 1:
