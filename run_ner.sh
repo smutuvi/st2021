@@ -1,33 +1,39 @@
 task=epidemic
-gpu=0
+MAX_LENGTH=256
+MODEL=roberta-base
+OUTPUT_DIR=output_dir
+BATCH_SIZE=32
+NUM_EPOCHS=1
+SAVE_STEPS=100
+LOGGING_STEPS=100
+SEED=42
 method=clean
-max_seq_len=128
-batch_size=32
-echo ${method}
-python3 main.py \
-	--do_train \
-	--do_eval \
-	--task=${task} \
+python3 run_ner.py \
+  --data_dir=./data \
+  --model_type=roberta \
+  --labels=./data/labels.txt \
+  --model_name_or_path=${MODEL} \
+  --output_dir=${OUTPUT_DIR} \
+  --max_seq_len=${MAX_LENGTH} \
+  --num_train_epochs=${NUM_EPOCHS} \
+  --per_gpu_train_batch_size=${BATCH_SIZE} \
+  --save_steps=${SAVE_STEPS} \
+  --logging_steps=${LOGGING_STEPS} \
+	--method=${method} \
+  --rule=0 \
+  --seed=${SEED} \
+  --task=${task} \
 	--train_file=train.txt \
 	--dev_file=dev.txt \
 	--test_file=test.txt \
-	--unlabel_file=unlabeled.txt \
-	--task_type=ner \
-	--data_dir="data" \
-	--rule=0 \
-	--logging_steps=100 \
-	--self_train_logging_steps=100 \
-	--gpu="${gpu}" \
-	--num_train_epochs=3 \
-	--weight_decay=1e-4 \
-	--method=${method} \
-	--batch_size=${batch_size} \
-	--max_seq_len=${max_seq_len} \
-	--auto_load=1 \
-	--self_training_update_period=250 \
+  --unlabel_file=unlabeled.txt \
+  --do_train \
+  --do_eval \
+  --do_predict \
+  --overwrite_output_dir \
+  --self_training_update_period=250 \
 	--max_steps=150 \
 	--self_training_max_step=2500 \
 	--self_training_power=2 \
 	--self_training_confreg=0.1 \
 	--self_training_contrastive_weight=1 \
-	--distmetric='cos' \

@@ -23,9 +23,14 @@ class InputExample(object):
         specified for train and dev examples, but not for test examples.
     """
 
+<<<<<<< HEAD
     def __init__(self, guid, text_a, label, true = -1):
+=======
+    def __init__(self, guid, text_a, text_b=None, label=None, true = -1):
+>>>>>>> c34f0cf9f319e53240c44644018c6426b77efda9
         self.guid = guid
         self.text_a = text_a
+        self.text_b = text_b
         self.label = label
         self.true = true
 
@@ -61,7 +66,10 @@ class WiCInputExample(InputExample):
         self.true = true
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> c34f0cf9f319e53240c44644018c6426b77efda9
 class MaskedLmInstance(object):
     """
     A single set of features of masked data.
@@ -426,6 +434,7 @@ class ChemprotProcessor(object):
         examples = []
         for i, d in enumerate(data):
             guid = "%s-%s" % (set_type, i)
+<<<<<<< HEAD
             text_a = d["text"]
             span_a = (d["start1"], d["end1"])
             span_b = (d["start2"], d["end2"])
@@ -444,6 +453,18 @@ class ChemprotProcessor(object):
                 logger.info(d)
             examples.append(ReInputExample(guid=guid, text_a=text_a, span_a=span_a,
                                          span_b=span_b, label=label, true = true))
+=======
+            text_a = ' '.join(sentence)
+            text_b = None
+            if set_type in ['unlabeled']:
+                label = label
+                # for x in range(len(sentence)):
+                #     label[x] = -1
+                # # label = -1
+            else:
+                label = label
+            examples.append(InputExample(guid=guid,text_a=text_a,text_b=text_b,label=label))
+>>>>>>> c34f0cf9f319e53240c44644018c6426b77efda9
         return examples
 
     def get_examples(self, mode):
@@ -915,6 +936,7 @@ def load_and_cache_unlabeled_examples(args, tokenizer, mode, train_size = 100):
     all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
 
     all_label_ids = torch.tensor([f.label_id for f in features], dtype=torch.long)
+<<<<<<< HEAD
     all_true_ids = torch.tensor([f.true for f in features], dtype=torch.long)
     all_ids = torch.tensor([_+train_size for _ ,f in enumerate(features)], dtype=torch.long)
 
@@ -933,3 +955,54 @@ def load_and_cache_unlabeled_examples(args, tokenizer, mode, train_size = 100):
                                 all_token_type_ids, all_label_ids, all_ids, all_true_ids)
 
     return dataset, len(features)
+=======
+    all_valid_ids = torch.tensor([f.valid_ids for f in features], dtype=torch.long)
+    all_lmask_ids = torch.tensor([f.label_mask for f in features], dtype=torch.long)
+
+    dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids,all_valid_ids,all_lmask_ids)
+
+    #dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
+    return dataset,processor.relation_labels, processor.num_label, processor.id2label, processor.label2id, size
+
+def load_and_cache_unlabeled_examples(args, tokenizer, mode, train_size = 100):
+    processor = processors[args.task](args)
+
+    # Load data features from cache or dataset file
+    cached_features_file = os.path.join(
+        args.data_dir,
+        'cached_{}_{}_{}_{}_unlabel_{}'.format(
+            mode,
+            args.task,
+            list(filter(None, args.model_name_or_path.split("/"))).pop(),
+            args.max_seq_len,
+            'dist' if args.rule == 1 else 'clean'
+        )
+    )
+
+    if os.path.exists(cached_features_file) and args.auto_load:
+        logger.info("Loading features from cached file %s", cached_features_file)
+        features = torch.load(cached_features_file)
+    else:
+        logger.info("Creating features from dataset file at %s", args.data_dir)
+
+        assert mode == "unlabeled"
+        examples = processor.get_examples("unlabeled")
+        label_list = processor.get_labels()
+        features = convert_examples_to_features(examples, label_list, args.max_seq_len, tokenizer)
+        logger.info("Saving features into cached file %s", cached_features_file)
+        torch.save(features, cached_features_file)
+
+ # Convert to Tensors and build dataset
+    all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
+    all_input_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
+    all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
+    all_label_ids = torch.tensor([f.label_id for f in features], dtype=torch.long)
+    all_valid_ids = torch.tensor([f.valid_ids for f in features], dtype=torch.long)
+    all_lmask_ids = torch.tensor([f.label_mask for f in features], dtype=torch.long)
+    size = len(features)
+
+    dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids,all_valid_ids,all_lmask_ids)
+
+    #dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
+    return dataset, size
+>>>>>>> c34f0cf9f319e53240c44644018c6426b77efda9
