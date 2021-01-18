@@ -132,10 +132,6 @@ class SemEvalProcessor(object):
     def __init__(self, args):
         self.args = args
         self.relation_labels = get_label(args)
-        self.num_label = 3
-        # self.relation_labels = [x for x in range(self.num_label)]
-        self.label2id = {x:x for x in range(self.num_label)}
-        self.id2label = {x:x for x in range(self.num_label)}
 
     @classmethod
     def _read_tsv(cls, input_file, quotechar=None):
@@ -152,12 +148,8 @@ class SemEvalProcessor(object):
         examples = []
         for (i, line) in enumerate(lines):
             guid = "%s-%s" % (set_type, i)
-            # # print(line[1])
-            # text_a = line[1]
-            # # print(text_a)
-            # label = self.relation_labels.index(line[0])
             text_a = line[1]
-            label = line[0]
+            label = self.relation_labels.index(line[0])
             if i % 1000 == 0:
                 logger.info(line)
             examples.append(InputExample(guid=guid, text_a=text_a, label=label))
@@ -175,12 +167,7 @@ class SemEvalProcessor(object):
             file_to_read = self.args.dev_file
         elif mode == 'test':
             file_to_read = self.args.test_file
-        elif mode == 'unlabeled':
-            file_to_read = self.args.unlabel_file
 
-        print(self.args.data_dir)
-        print(file_to_read)
-        
         logger.info("LOOKING AT {}".format(os.path.join(self.args.data_dir, file_to_read)))
         return self._create_examples(self._read_tsv(os.path.join(self.args.data_dir, file_to_read)), mode)
 

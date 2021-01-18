@@ -1,6 +1,6 @@
 task=agnews
 gpu=0
-method=clean
+method=selftrain
 max_seq_len=128
 batch_size=32
 echo ${method}
@@ -13,8 +13,8 @@ python3 main.py \
 	--test_file=test_data.json \
 	--unlabel_file=unlabeled_data.json \
 	--task_type=tc \
-	--data_dir="data/agnews" \
-	--rule=0 \
+	--data_dir="data/${task}" \
+	--rule=1 \
 	--logging_steps=100 \
 	--self_train_logging_steps=100 \
 	--gpu="${gpu}" \
